@@ -21,7 +21,7 @@ class Dashboard extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => AccountSettingsPage()),
+                  MaterialPageRoute(builder: (context) => const AccountSettingsPage()),
                 );
               },
             ),

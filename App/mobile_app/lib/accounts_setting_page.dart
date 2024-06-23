@@ -35,8 +35,19 @@ class AccountSettingsPage extends StatelessWidget {
               // Replace this with your actual implementation
 
               // Reset the app to the login page and remove all previous pages
-              Navigator.popUntil(context, (Route<dynamic> route) => route.settings.name == 'LoginPage');
+              // Navigator.popUntil(context, (Route<dynamic> route) => route.settings.name == 'LoginPage');
 
+              // Navigator.pushReplacementNamed(context, 'LoginPage');
+              // Check if the Navigator can pop first
+              if (Navigator.canPop(context)) {
+                Navigator.popUntil(
+                    context,
+                    (Route<dynamic> route) =>
+                        route.settings.name == 'MyApp');
+              } else {
+                // If it can't pop, you might want to push the desired route directly
+                Navigator.pushNamed(context, 'LoginPage');
+              }
             },
             leading: const Padding(
               padding: EdgeInsets.only(left: 16.0),
