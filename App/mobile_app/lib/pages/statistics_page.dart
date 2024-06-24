@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:math';
 import 'package:http/http.dart' as http;
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:flutter/material.dart';
 import 'package:graphic/graphic.dart';
-import 'package:single_value_charts/single_value_charts.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../data.dart';
 
 class StatisticsPage extends StatefulWidget {
-  const StatisticsPage({Key? key}) : super(key: key);
+  const StatisticsPage({super.key});
 
   @override
   StatisticsPageState createState() => StatisticsPageState();
@@ -27,6 +28,8 @@ class StatisticsPageState extends State<StatisticsPage> {
 
   bool rebuild = false;
   bool _isLoading = true;
+  var unsignedInt = 0;
+  var signedInt = 0;
   var dicomStatsData = [];
 
   @override
@@ -50,19 +53,24 @@ class StatisticsPageState extends State<StatisticsPage> {
         );
         print(response.statusCode);
         if (response.statusCode == 200) {
-          final Map<dynamic, dynamic> responseData = jsonDecode(response.body);
+          final Map<dynamic, dynamic> responseData = json.decode(response.body);
           print(responseData);
           print(responseData.runtimeType);
           // final List<Map<String, Object>> dicomStatsData = json.decode(response.body)['modalities_count'] as List<Map<String, Object>>;
           // print(responseData["modalities_count"].runtimeType);
           // // dicomStatsData = responseData["modalities_count"];
           // print(dicomStatsData);
+          print(responseData["pixel_types"]);
+          print(responseData["pixel_types"]["0"]);
 
           // Parse the responseData here
 
           setState(() {
             _isLoading = false; // Hide the loading indicator
-            dicomStatsData;
+            unsignedInt = responseData["pixel_types"]["0"];
+            signedInt = responseData["pixel_types"]["1"];
+
+            // dicomStatsData;
           });
         } else {
           // Show error message
@@ -128,27 +136,10 @@ class StatisticsPageState extends State<StatisticsPage> {
                   ],
                 )
               : Column(
+                  // crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ThresholdCard(
-                          backgroundColor: Colors.grey,
-                          textColor: Colors.white,
-                          label: 'Threshold background off',
-                          percentage: '20.43%',
-                        ),
-                        SizedBox(width: 20),
-                        ThresholdCard(
-                          backgroundColor: Colors.green,
-                          textColor: Colors.black,
-                          label: 'Threshold background on',
-                          percentage: '20.43%',
-                        ),
-                      ],
-                    ),
                     Container(
-                      padding: const EdgeInsets.fromLTRB(20, 40, 20, 5),
+                      padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
                       child: const Text(
                         'Number of Modalities',
                         style: TextStyle(fontSize: 20),
@@ -194,124 +185,31 @@ class StatisticsPageState extends State<StatisticsPage> {
                         crosshair: CrosshairGuide(),
                       ),
                     ),
-                    // Container(
-                    //   margin: const EdgeInsets.only(top: 10),
-                    //   width: 350,
-                    //   height: 300,
-                    //   child: Chart(
-                    //     rebuild: rebuild,
-                    //     data: roseData,
-                    //     variables: {
-                    //       'name': Variable(
-                    //         accessor: (Map map) => map['name'] as String,
-                    //       ),
-                    //       'value': Variable(
-                    //         accessor: (Map map) => map['value'] as num,
-                    //         scale: LinearScale(min: 0, marginMax: 0.1),
-                    //       ),
-                    //     },
-                    //     marks: [
-                    //       IntervalMark(
-                    //         label: LabelEncode(
-                    //             encoder: (tuple) =>
-                    //                 Label(tuple['name'].toString())),
-                    //         shape: ShapeEncode(
-                    //             value: RectShape(
-                    //           borderRadius:
-                    //               const BorderRadius.all(Radius.circular(10)),
-                    //         )),
-                    //         color: ColorEncode(
-                    //             variable: 'name', values: Defaults.colors10),
-                    //         elevation: ElevationEncode(value: 5),
-                    //         transition: Transition(
-                    //             duration: Duration(seconds: 2),
-                    //             curve: Curves.elasticOut),
-                    //         entrance: {MarkEntrance.y},
-                    //       )
-                    //     ],
-                    //     coord: PolarCoord(startRadius: 0.15),
-                    //   ),
-                    // ),
+                    SizedBox(height: MediaQuery.of(context).size.height / 17),
                     Container(
-                      padding: const EdgeInsets.fromLTRB(20, 40, 20, 5),
+                      padding: const EdgeInsets.fromLTRB(20, 40, 20, 10),
                       child: const Text(
-                        'Morphing',
+                        'Types of Integers',
                         style: TextStyle(fontSize: 20),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(20, 40, 20, 5),
-                      child: const Text(
-                        'Line and Area chart animated Entrance',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-                      alignment: Alignment.centerLeft,
-                      child: const Text(
-                        '- With tree entrance values: x, y, alpha',
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-                      alignment: Alignment.centerLeft,
-                      child: const Text(
-                        '- Press refreash to rebuild.',
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.only(top: 10),
-                      width: 350,
-                      height: 300,
-                      child: Chart(
-                        rebuild: rebuild,
-                        data: invalidData,
-                        variables: {
-                          'Date': Variable(
-                            accessor: (Map map) => map['Date'] as String,
-                            scale: OrdinalScale(tickCount: 5),
-                          ),
-                          'Close': Variable(
-                            accessor: (Map map) =>
-                                (map['Close'] ?? double.nan) as num,
-                          ),
-                        },
-                        marks: [
-                          AreaMark(
-                            shape: ShapeEncode(
-                                value: BasicAreaShape(smooth: true)),
-                            gradient: GradientEncode(
-                                value: LinearGradient(colors: [
-                              Defaults.colors10.first.withAlpha(80),
-                              Defaults.colors10.first.withAlpha(10),
-                            ])),
-                            transition:
-                                Transition(duration: Duration(seconds: 2)),
-                            entrance: {
-                              MarkEntrance.x,
-                              MarkEntrance.y,
-                              MarkEntrance.opacity
-                            },
-                          ),
-                          LineMark(
-                            shape: ShapeEncode(
-                                value: BasicLineShape(smooth: true)),
-                            size: SizeEncode(value: 0.5),
-                            transition:
-                                Transition(duration: Duration(seconds: 2)),
-                            entrance: {
-                              MarkEntrance.x,
-                              MarkEntrance.y,
-                              MarkEntrance.opacity
-                            },
-                          ),
-                        ],
-                        axes: [
-                          Defaults.horizontalAxis,
-                          Defaults.verticalAxis,
-                        ],
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ThresholdCard(
+                            backgroundColor: Colors.grey.shade700,
+                            textColor: Colors.white,
+                            label: 'Unsigned Integer',
+                            count: unsignedInt.toString(),
+                            fontFamily: GoogleFonts.lato),
+                        SizedBox(width: MediaQuery.of(context).size.width/17),
+                        ThresholdCard(
+                            backgroundColor: Colors.green.shade400,
+                            textColor: Colors.black,
+                            label: 'Signed Integer',
+                            count: signedInt.toString(),
+                            fontFamily: GoogleFonts.lato),
+                      ],
                     ),
                   ],
                 ),
@@ -325,42 +223,46 @@ class ThresholdCard extends StatelessWidget {
   final Color backgroundColor;
   final Color textColor;
   final String label;
-  final String percentage;
+  final String count;
+  final TextStyle Function(
+      {Color? color, double? fontSize, FontWeight? fontWeight}) fontFamily;
 
   ThresholdCard({
     required this.backgroundColor,
     required this.textColor,
     required this.label,
-    required this.percentage,
+    required this.count,
+    required this.fontFamily,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 150,
-      height: 150,
+      width: MediaQuery.of(context).size.width / 2.42,
+      height: MediaQuery.of(context).size.height / 5,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        // mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: fontFamily(
               color: textColor,
-              fontSize: 12,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
             ),
-            textAlign: TextAlign.center,
           ),
           Spacer(),
           Text(
-            percentage,
-            style: TextStyle(
+            count,
+            style: fontFamily(
               color: textColor,
-              fontSize: 12,
+              fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
           ),

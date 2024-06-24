@@ -2,6 +2,7 @@ import 'package:first_app/pages/statistics_page.dart';
 import 'package:flutter/material.dart';
 import 'accounts_setting_page.dart';
 
+// ignore: must_be_immutable
 class Dashboard extends StatelessWidget {
   var userName;
 

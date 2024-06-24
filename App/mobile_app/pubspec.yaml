@@ -37,6 +37,7 @@ dependencies:
   quiver: ^3.0.1+1
   single_value_charts: ^1.0.2
   loading_animation_widget: ^1.2.1
+  google_fonts: ^4.0.3
 
 dev_dependencies:
   flutter_test:
