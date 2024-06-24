@@ -5,6 +5,9 @@ from subprocess import Popen
 import mysql.connector
 from flask import Flask, request, jsonify
 import mysql.connector
+import os
+from pydicom import dcmread
+from collections import Counter
 
 # from logging_module import LoggingHandler
 
@@ -97,6 +100,78 @@ def login():
         return jsonify({"message": "Login successful", "name": name}), 200
     else:
         return jsonify({"message": "Invalid credentials"}), 401
+
+
+@app.route("/stats", methods=["GET"])
+def get_dicom_stats():
+    """
+    This function reads DICOM images from a folder and calculates various statistics.
+
+    Args:
+        folder_path: Path to the folder containing DICOM images.
+
+    Returns:
+        A dictionary containing statistics about the DICOM images.
+    """
+    folder_path = "/Users/likhithravula/Documents/NEU/Northeastern/Capstone/NBIA Source Data/Raw/Pseudo-PHI-DICOM-Data"
+    try:
+        stats = {
+            "total_files": 0,
+            "modalities": {},
+            "image_shapes": [],
+            "pixel_types": {}
+        }
+        for root, _, filenames in os.walk(folder_path):
+            for filename in filenames:
+                if filename.lower().endswith(".dcm"):
+                    filepath = os.path.join(root, filename)
+                    try:
+                        dcm = dcmread(filepath)
+                        stats["total_files"] += 1
+
+                        # Update modality statistics
+                        modality = dcm.Modality.upper()
+                        stats["modalities"][modality] = stats["modalities"].get(modality, 0) + 1
+
+                        # Update image shape statistics
+                        stats["image_shapes"].append(dcm.pixel_array.shape)
+
+                        # Update pixel type statistics
+                        pixel_type = dcm.PixelRepresentation
+                        stats["pixel_types"][pixel_type] = stats["pixel_types"].get(pixel_type, 0) + 1
+
+                    except IOError as e:
+                        print(f"Error reading DICOM file: {filepath}")
+
+        modalities_count = []
+        for key in stats["modalities"].keys():
+            count = {}
+            count["name"] = key
+            count["value"] = stats["modalities"][key]
+            modalities_count.append(count)
+
+        
+        image_shapes = Counter(stats["image_shapes"])
+
+        image_shapes_count = []
+        for key, value in image_shapes.items():
+            count = {}
+            count["name"] = key
+            count["value"] = value
+            image_shapes_count.append(count)
+
+        response_body = {
+            "total_files": stats["total_files"],
+            "modalities_count": modalities_count,
+            "image_shapes": image_shapes_count,
+            "pixel_types": stats["pixel_types"]
+        }
+
+        return jsonify(response_body), 200
+    except Exception as e:
+        print(e)
+        return jsonify({"message": "Error happened at the server", "error": str(e)}), 500
+
 
 
 # service_name can be DICOM or EMR or FHIR

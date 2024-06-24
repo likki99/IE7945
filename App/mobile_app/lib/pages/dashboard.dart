@@ -1,3 +1,4 @@
+import 'package:first_app/pages/statistics_page.dart';
 import 'package:flutter/material.dart';
 import 'accounts_setting_page.dart';
 
@@ -71,7 +72,7 @@ class Dashboard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => AccountSettingsPage()),
+                            builder: (context) => StatisticsPage()),
                       );
                       break;
                     case 2:

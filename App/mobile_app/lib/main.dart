@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'dashboard.dart';
+import 'pages/dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
