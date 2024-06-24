@@ -93,7 +93,8 @@ def login():
     cnx.close()
 
     if result:
-        return jsonify({"message": "Login successful"}), 200
+        name = result[2]
+        return jsonify({"message": "Login successful", "name": name}), 200
     else:
         return jsonify({"message": "Invalid credentials"}), 401
 

@@ -128,24 +128,31 @@ class _LoginPageState extends State<LoginPage> {
                         }),
                       );
 
+                      final Map<String, dynamic> responseData =
+                          jsonDecode(response.body);
+                      print(responseData);
                       if (response.statusCode == 200) {
                         // Login successful
+                        final String userName = responseData['name'] ?? "User";
                         setState(() {
                           _isLoading = false; // Hide the loading indicator
                         });
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => Dashboard()),
+                          MaterialPageRoute(
+                              builder: (context) => Dashboard(
+                                    userName: userName,
+                                  )),
                         );
                       } else {
                         // Show error message
-                        final Map<String, dynamic> responseData = jsonDecode(response.body);
-                      final String errorMessage = responseData['message'] ?? response.reasonPhrase;
-                      print(
-                          'Login failed. Please try again. Status: ${response.statusCode} - $errorMessage');
+                        final String errorMessage =
+                            responseData['message'] ?? response.reasonPhrase;
+                        print(
+                            'Login failed. Please try again. Status: ${response.statusCode} - $errorMessage');
                         setState(() {
                           _isLoading = false; // Hide the loading indicator
-                          _errorMessage =errorMessage;
+                          _errorMessage = errorMessage;
                         });
                       }
                     } catch (e) {
