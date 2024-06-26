@@ -30,6 +30,7 @@ class StatisticsPageState extends State<StatisticsPage> {
   bool _isLoading = true;
   var unsignedInt = 0;
   var signedInt = 0;
+  var totalFiles = 0;
   var dicomStatsData = [];
 
   @override
@@ -56,12 +57,9 @@ class StatisticsPageState extends State<StatisticsPage> {
           final Map<dynamic, dynamic> responseData = json.decode(response.body);
           print(responseData);
           print(responseData.runtimeType);
-          // final List<Map<String, Object>> dicomStatsData = json.decode(response.body)['modalities_count'] as List<Map<String, Object>>;
-          // print(responseData["modalities_count"].runtimeType);
-          // // dicomStatsData = responseData["modalities_count"];
-          // print(dicomStatsData);
           print(responseData["pixel_types"]);
           print(responseData["pixel_types"]["0"]);
+          print(responseData["total_files"]);
 
           // Parse the responseData here
 
@@ -69,8 +67,7 @@ class StatisticsPageState extends State<StatisticsPage> {
             _isLoading = false; // Hide the loading indicator
             unsignedInt = responseData["pixel_types"]["0"];
             signedInt = responseData["pixel_types"]["1"];
-
-            // dicomStatsData;
+            totalFiles = responseData["total_files"];
           });
         } else {
           // Show error message
@@ -130,7 +127,7 @@ class StatisticsPageState extends State<StatisticsPage> {
                   children: [
                     SizedBox(height: MediaQuery.of(context).size.height / 3),
                     LoadingAnimationWidget.staggeredDotsWave(
-                      color: Colors.black,
+                      color: Colors.blueGrey.shade700,
                       size: MediaQuery.of(context).size.width / 8,
                     ),
                   ],
@@ -138,6 +135,23 @@ class StatisticsPageState extends State<StatisticsPage> {
               : Column(
                   // crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ThresholdCard(
+                          backgroundColor: Colors.lightBlue.shade600,
+
+                          textColor: Colors.white,
+                          label: 'Total Images',
+                          count: totalFiles.toString(),
+                          fontFamily: GoogleFonts.lato,
+                          width: MediaQuery.of(context).size.width / 1.15,
+                          height: MediaQuery.of(context).size.height / 5,
+                          textFontSize: 30,
+                          valueFontSize: 40,
+                        ),
+                      ],
+                    ),
                     Container(
                       padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
                       child: const Text(
@@ -197,18 +211,28 @@ class StatisticsPageState extends State<StatisticsPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ThresholdCard(
-                            backgroundColor: Colors.grey.shade700,
-                            textColor: Colors.white,
-                            label: 'Unsigned Integer',
-                            count: unsignedInt.toString(),
-                            fontFamily: GoogleFonts.lato),
-                        SizedBox(width: MediaQuery.of(context).size.width/17),
+                          backgroundColor: Colors.lightGreen.shade500,
+                          textColor: Colors.black,
+                          label: 'Unsigned Integer',
+                          count: unsignedInt.toString(),
+                          fontFamily: GoogleFonts.lato,
+                          width: MediaQuery.of(context).size.width / 2.42,
+                          height: MediaQuery.of(context).size.height / 5,
+                          textFontSize: 20,
+                          valueFontSize: 28
+                        ),
+                        SizedBox(width: MediaQuery.of(context).size.width / 17),
                         ThresholdCard(
-                            backgroundColor: Colors.green.shade400,
-                            textColor: Colors.black,
-                            label: 'Signed Integer',
-                            count: signedInt.toString(),
-                            fontFamily: GoogleFonts.lato),
+                          backgroundColor: Colors.amber.shade400,
+                          textColor: Colors.black,
+                          label: 'Signed Integer',
+                          count: signedInt.toString(),
+                          fontFamily: GoogleFonts.lato,
+                          width: MediaQuery.of(context).size.width / 2.42,
+                          height: MediaQuery.of(context).size.height / 5,
+                          textFontSize: 20,
+                          valueFontSize: 28
+                        ),
                       ],
                     ),
                   ],
@@ -226,20 +250,29 @@ class ThresholdCard extends StatelessWidget {
   final String count;
   final TextStyle Function(
       {Color? color, double? fontSize, FontWeight? fontWeight}) fontFamily;
+  final double? width;
+  final double? height;
+  final double? textFontSize;
+  final double? valueFontSize;
 
-  ThresholdCard({
-    required this.backgroundColor,
-    required this.textColor,
-    required this.label,
-    required this.count,
-    required this.fontFamily,
-  });
+  ThresholdCard(
+      {required this.backgroundColor,
+      required this.textColor,
+      required this.label,
+      required this.count,
+      required this.fontFamily,
+      required this.width,
+      required this.height,
+      required this.textFontSize,
+      required this.valueFontSize});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width / 2.42,
-      height: MediaQuery.of(context).size.height / 5,
+      width: width,
+      height: height,
+      // width: MediaQuery.of(context).size.width / 2.42,
+      // height: MediaQuery.of(context).size.height / 5,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: backgroundColor,
@@ -253,7 +286,7 @@ class ThresholdCard extends StatelessWidget {
             label,
             style: fontFamily(
               color: textColor,
-              fontSize: 20,
+              fontSize: textFontSize,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -262,7 +295,7 @@ class ThresholdCard extends StatelessWidget {
             count,
             style: fontFamily(
               color: textColor,
-              fontSize: 28,
+              fontSize: valueFontSize,
               fontWeight: FontWeight.bold,
             ),
           ),

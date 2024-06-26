@@ -1,25 +1,22 @@
-import logging
-import psutil
-import time
-from subprocess import Popen
-import mysql.connector
-from flask import Flask, request, jsonify
-import mysql.connector
 import os
+import cv2
+import time
+import utils
+import psutil
+import logging
+import pytesseract
+import config as cf
+from PIL import Image
+import mysql.connector
+import mysql.connector
 from pydicom import dcmread
+from subprocess import Popen
+from pytesseract import Output
 from collections import Counter
+from flask import Flask, request, jsonify
 
-# from logging_module import LoggingHandler
 
 app = Flask(__name__)
-
-
-# def get_logger():
-#     name = "api_logs"
-#     current_date = str(datetime.now().strftime("dt_%Y-%m-%d"))
-#     log_file = open("/home/aman_kumar01/data/hl7_tool/logs/api_logs_{}.log".format(current_date), "a")
-#     # logger = LoggingHandler(name, log_file)
-#     return logger, log_file
 
 
 def success_message(response, msg):
@@ -119,7 +116,7 @@ def get_dicom_stats():
             "total_files": 0,
             "modalities": {},
             "image_shapes": [],
-            "pixel_types": {}
+            "pixel_types": {},
         }
         for root, _, filenames in os.walk(folder_path):
             for filename in filenames:
@@ -131,14 +128,18 @@ def get_dicom_stats():
 
                         # Update modality statistics
                         modality = dcm.Modality.upper()
-                        stats["modalities"][modality] = stats["modalities"].get(modality, 0) + 1
+                        stats["modalities"][modality] = (
+                            stats["modalities"].get(modality, 0) + 1
+                        )
 
                         # Update image shape statistics
                         stats["image_shapes"].append(dcm.pixel_array.shape)
 
                         # Update pixel type statistics
                         pixel_type = dcm.PixelRepresentation
-                        stats["pixel_types"][pixel_type] = stats["pixel_types"].get(pixel_type, 0) + 1
+                        stats["pixel_types"][pixel_type] = (
+                            stats["pixel_types"].get(pixel_type, 0) + 1
+                        )
 
                     except IOError as e:
                         print(f"Error reading DICOM file: {filepath}")
@@ -150,7 +151,6 @@ def get_dicom_stats():
             count["value"] = stats["modalities"][key]
             modalities_count.append(count)
 
-        
         image_shapes = Counter(stats["image_shapes"])
 
         image_shapes_count = []
@@ -164,14 +164,16 @@ def get_dicom_stats():
             "total_files": stats["total_files"],
             "modalities_count": modalities_count,
             "image_shapes": image_shapes_count,
-            "pixel_types": stats["pixel_types"]
+            "pixel_types": stats["pixel_types"],
         }
 
         return jsonify(response_body), 200
     except Exception as e:
         print(e)
-        return jsonify({"message": "Error happened at the server", "error": str(e)}), 500
-
+        return (
+            jsonify({"message": "Error happened at the server", "error": str(e)}),
+            500,
+        )
 
 
 # service_name can be DICOM or EMR or FHIR
@@ -271,6 +273,113 @@ def control_service(name, task):
             ),
             500,
         )
+
+
+@app.route("/convert", methods=["POST"])
+def convert_to_image():
+    data = request.get_json()
+    sc_file_path = data["sc_file_path"]
+    file_name = sc_file_path.split("/")[-1]
+
+    print(f"Source file path and file name: {sc_file_path} and {file_name}")
+    try:
+        # Check if a file is part of the request
+        # if "file" not in request.files:
+        #     return (
+        #         jsonify({"message": "No file part in the request", "status": "error"}),
+        #         400,
+        #     )
+
+        # file = request.files["file"]
+
+        # # If the user does not select a file
+        # if file.filename == "":
+        #     return jsonify({"message": "No selected file", "status": "error"}), 400
+
+        # if file:
+        # Save the source file
+        # file_path = utils.save_dicom_uploads(file)
+        file_path = utils.copy_dicom_to_uploads(file_name, sc_file_path)
+        image_path = utils.convert_dicom_to_img(file_path)
+        for dirpath, _, filenames in os.walk(image_path):
+            for file in filenames:
+                if file.endswith(".jpg"):
+                    final_path = os.path.join(dirpath, file)
+
+        return (
+            jsonify(
+                {
+                    "message": "File processed successfully",
+                    "status": "success",
+                    "dicom_path": file_path,
+                    "image_path": final_path,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        return jsonify({"message": str(e), "status": "error"}), 500
+
+
+@app.route("/mask_image", methods=["POST"])
+def mask_image():
+    try:
+        # Get image path from the request
+        data = request.json
+        img_path = data.get("img_path")
+
+        if not img_path or not os.path.exists(img_path):
+            return (
+                jsonify(
+                    {
+                        "message": "Image path is invalid or file does not exist",
+                        "status": "error",
+                    }
+                ),
+                400,
+            )
+
+        # Process the image
+        img = cv2.imread(img_path)
+        entities = ["DAVIDSON", "DOU", "Mi]", "01.09.2012", "DOB:", "06.16.1976"]
+
+        d = pytesseract.image_to_data(Image.open(img_path), output_type=Output.DICT)
+        n_boxes = len(d["text"])
+        polygon_list = []
+        for i in range(n_boxes):
+            if d["text"][i] in entities:
+                (x, y, w, h) = (
+                    d["left"][i],
+                    d["top"][i],
+                    d["width"][i],
+                    d["height"][i],
+                )
+                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 0), -1)
+
+                polygon_list.append((x, y, w, h))
+
+        # Save the processed image
+        processed_img_path = os.path.join(
+            cf.base_dir, "data", "uploads", "processed_" + os.path.basename(img_path)
+        )
+        cv2.imwrite(processed_img_path, img)
+        print(polygon_list)
+        print(type(polygon_list))
+        return (
+            jsonify(
+                {
+                    "message": "Image processed successfully",
+                    "status": "success",
+                    "processed_img_path": processed_img_path,
+                    "polygon_list": polygon_list,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        return jsonify({"message": str(e), "status": "error"}), 500
 
 
 if __name__ == "__main__":

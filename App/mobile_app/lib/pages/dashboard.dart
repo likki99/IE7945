@@ -1,6 +1,7 @@
 import 'package:first_app/pages/statistics_page.dart';
 import 'package:flutter/material.dart';
 import 'accounts_setting_page.dart';
+import 'deid_page.dart';
 
 // ignore: must_be_immutable
 class Dashboard extends StatelessWidget {
@@ -66,7 +67,7 @@ class Dashboard extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => AccountSettingsPage()),
+                            builder: (context) => DEIDPage()),
                       );
                       break;
                     case 1:
