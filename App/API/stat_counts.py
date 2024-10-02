@@ -1,3 +1,15 @@
+"""
+OVERVIEW:
+The purpose of this code is to create a python method to retrieve the DICOM set statistics
+
+
+CONTRIBUTION:
+Code Developers : 
+- Likhith Ravula <likhith.ravula.28@gmail.com>
+
+Code change/update requests are welcome. Please mail us to discuss what you would like to change.
+"""
+
 import os
 from pydicom import dcmread
 

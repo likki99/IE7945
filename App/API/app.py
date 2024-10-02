@@ -1,3 +1,16 @@
+"""
+OVERVIEW:
+The purpose of this code is to create endpoints/ APIs for the front end application, that can trigger the deid pipeline
+
+
+CONTRIBUTION:
+Code Developers : 
+- Likhith Ravula <likhith.ravula.28@gmail.com>
+
+Code change/update requests are welcome. Please mail us to discuss what you would like to change.
+"""
+
+
 import os
 import cv2
 import time
@@ -80,7 +93,7 @@ def login():
 
     # Connect to MySQL database
     cnx = mysql.connector.connect(
-        user="root", password="AkkiLikki@9799", host="localhost", database="capstone"
+        user="root", password="*****", host="localhost", database="capstone"
     )
     cursor = cnx.cursor()
 
