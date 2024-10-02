@@ -15,3 +15,6 @@ Repository Components:
   - `API folder`: Contains the code base for Flask APIs that communicate with the front end, database, and other Python scripts.
   - `mobile app folder`: Contains the code base for a cross-platform front-end mobile app developed using the Flutter framework.
   - `Model folder`: Contains the code base for building the LLM (Large Language Model) model that identifies sensitive data in the images.
+
+
+Disclaimer: The data used in the project is completely open source (https://www.cancerimagingarchive.net/collection/pseudo-phi-dicom-data/) for educational purposes and was downloaded using NBIA Data Retriever.
