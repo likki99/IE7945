@@ -1,4 +1,4 @@
-# Deidentifying Medical Images - Made Easy#
+# Deidentifying Medical Images - Made Easy
 
 To protect people's privacy, data must be anonymized by taking out or changing any details that could be used to identify them. This makes it safe to share the data with others for various purposes across the industry/organization. Regulations like HIPAA exist to anonymize data, especially in healthcare. This anonymization process ensures information cannot be linked back to specific individuals. For instance, the human subject research data needs to be analyzed but privacy for the participants must be a top priority. De-identification helps achieve this balance.
 
